@@ -157,7 +157,7 @@ const berkasSchema = mongoose.Schema({
     required: true,
   },
   PIC: [picSchema], // Array PIC tidak wajib diisi
-  status: statusSchema,
+  status: [statusSchema],
   dateIn: {
     type: String,
   },
