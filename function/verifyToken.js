@@ -1,36 +1,34 @@
+const jwt = require("jsonwebtoken");
 const Token = require("../model/token");
 
-const verifyToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+const SECRET_KEY = "TangkApp";
 
+const verifyToken = async (token) => {
   if (!token) {
-    return res.status(401).json({ error: "Token tidak ditemukan" });
+    throw { status: 401, message: "Token tidak ditemukan" };
   }
 
-  try {
-    // Periksa apakah token ada di database dan belum kedaluwarsa
-    const tokenRecord = await Token.findOne({ token });
-    if (!tokenRecord) {
-      return res.status(403).json({ error: "Token tidak valid atau telah dicabut" });
-    }
+  // Periksa apakah token ada di database
+  const tokenRecord = await Token.findOne({ token });
+  if (!tokenRecord) {
+    throw { status: 403, message: "Token tidak valid atau telah dicabut" };
+  }
 
-    if (new Date() > tokenRecord.expiresAt) {
-      return res.status(403).json({ error: "Token telah kedaluwarsa" });
-    }
-
-    // Verifikasi token JWT
-    jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+  // Verifikasi token JWT
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, SECRET_KEY, (err, user) => {
       if (err) {
-        return res.status(403).json({ error: "Token tidak valid" });
+        return reject({ status: 403, message: "Token tidak valid atau kadaluarsa" });
       }
 
-      req.user = user; // Simpan data user untuk endpoint berikutnya
-      next();
+      // Return user jika token valid
+      resolve({
+        NIK: user.NIK,
+        nama: user.nama,
+        role: user.role,
+      });
     });
-  } catch (error) {
-    res.status(500).json({ error: "Kesalahan server saat memverifikasi token" });
-  }
+  });
 };
 
-module.exports = verifyToken;
+module.exports = { verifyToken };

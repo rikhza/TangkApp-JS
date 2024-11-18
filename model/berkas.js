@@ -93,11 +93,26 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  namaSubsek: {
+    type: String,
+  },
+  namaKegiatan: {
+    type: String,
+    required: true,
+  },
   idPemohon: {
     type: String,
     required: true,
   },
+  namaPemohon: {
+    type: String,
+    required: true,
+  },
   idJenisHak: {
+    type: String,
+    required: true,
+  },
+  JenisHak: {
     type: String,
     required: true,
   },
@@ -109,7 +124,19 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  idSPS: {
+  namaDesa: {
+    type: String,
+    required: true,
+  },
+  namaKecamatan: {
+    type: String,
+    required: true,
+  },
+  namaPetugasSPS: {
+    type: String,
+    required: true,
+  },
+  tanggalSPS: {
     type: String,
     required: true,
   },
@@ -133,7 +160,6 @@ const berkasSchema = mongoose.Schema({
   status: statusSchema,
   dateIn: {
     type: String,
-    required: true,
   },
   dateUp: {
     type: String,
