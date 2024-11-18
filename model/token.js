@@ -3,18 +3,18 @@ const mongoose = require("mongoose");
 const tokenSchema = mongoose.Schema({
   token: {
     type: String,
-    required: true, // Token JWT harus ada
+    required: true,
   },
-  NIK: {
+  userId: {
     type: String,
-    required: true, // NIK untuk mengidentifikasi pengguna
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now, // Tanggal token dibuat
+    default: Date.now, 
   },
   expiresAt: {
-    type: Date, // Waktu token kedaluwarsa
+    type: Date,
     required: true,
   },
 });
