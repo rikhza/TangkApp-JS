@@ -142,7 +142,11 @@ const berkasSchema = mongoose.Schema({
   },
   idPetugasUkur: {
     type: String,
-    default: null, // Tidak wajib diisi
+    default: null, 
+  },
+  namaPetugasUkur: {
+    type: String,
+    default: null, 
   },
   statusAlihMedia: {
     type: Boolean,

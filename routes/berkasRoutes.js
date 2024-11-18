@@ -70,6 +70,7 @@ router.post("/insert", async (req, res) => {
       namaPetugasSPS,
       tanggalSPS,
       idPetugasUkur: idPetugasUkur || null,
+      namaPetugasUkur: namaPetugasUkur || null,
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
@@ -126,6 +127,7 @@ router.put("/update/:idBerkas", async (req, res) => {
       namaPetugasSPS,
       tanggalSPS,
       idPetugasUkur,
+      namaPetugasUkur,
       statusAlihMedia,
       statusBayarPNBP,
       PIC,
@@ -161,6 +163,7 @@ router.put("/update/:idBerkas", async (req, res) => {
     existingBerkas.namaPetugasSPS = namaPetugasSPS || existingBerkas.namaPetugasSPS;
     existingBerkas.tanggalSPS = tanggalSPS || existingBerkas.tanggalSPS;
     existingBerkas.idPetugasUkur = idPetugasUkur || existingBerkas.idPetugasUkur;
+    existingBerkas.namaPetugasUkur = namaPetugasUkur || existingBerkas.namaPetugasUkur;
     existingBerkas.statusAlihMedia =
       typeof statusAlihMedia === "boolean" ? statusAlihMedia : existingBerkas.statusAlihMedia;
     existingBerkas.statusBayarPNBP =
@@ -227,16 +230,21 @@ router.get("/petugasUkur", async (req, res) => {
 });
 
 const roleStatusAccess = {
-  Admin: [], 
-  SPJ: ["Proses SPJ"], 
-  Kasi: ["Approval Kasi"], 
+  Admin: [],
+  PelaksanaEntri: ["Proses SPJ"],
+  PelaksanaSPJ: ["Proses SPJ"],
+  PelaksanaInventaris: ["Inventaris dan Distribusi", "Ukur Gambar", "Inventaris Berkas"],
+  PelaksanaKoordinator: ["Periksa Hasil PU", "QC Pemeriksa Koordinator"],
+  PelaksanaPemetaan: ["QC Bidang/Integrasi"],
+  PelaksanaPencetakan: ["Pencetakan/Validasi Sitata"],
+  Korsub: ["Approval SPJ Korsub", "Paraf Produk Berkas"],
+  Kasi: ["Approval SPJ Kasi", "TTD Produk Berkas", "Penyelesaian 307"],
 };
-
 
 router.post("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  const role = req.body.role; // Role dari header
+  const role = req.body.role; // Role dari body
 
   try {
     // Verifikasi token
@@ -260,27 +268,35 @@ router.post("/", async (req, res) => {
       }
 
       const pipeline = [
-        // Ambil status terakhir dari status.statusDetail
+        // Ambil status terakhir dari array status
         {
           $addFields: {
             lastStatus: {
-              $arrayElemAt: ["$status.statusDetail", -1], // Ambil elemen terakhir dari statusDetail
+              $arrayElemAt: ["$status", -1], // Ambil elemen terakhir dari array status
             },
           },
         },
         {
           $match: {
-            "lastStatus.nama": { $in: allowedStatuses }, // Periksa apakah status terakhir sesuai role
+            "lastStatus.name": { $in: allowedStatuses }, // Periksa apakah lastStatus.name sesuai role
           },
         },
       ];
 
       data = await Berkas.aggregate(pipeline);
+
+      // Debugging hasil akhir
+      console.log("Filtered Data:", data);
     }
-      res.status(200).json(data);
+
+    // Kirim data ke frontend
+    res.status(200).json(data);
   } catch (error) {
+    console.error("Error fetching data:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 module.exports = router;
