@@ -105,6 +105,83 @@ router.post("/insert", async (req, res) => {
   }
 });
 
+router.put("/update/:idBerkas", async (req, res) => {
+  try {
+    const { idBerkas } = req.params;
+    const {
+      noBerkas,
+      tahunBerkas,
+      tanggalTerima,
+      idKegiatan,
+      namaSubsek,
+      namaKegiatan,
+      idPemohon,
+      namaPemohon,
+      idJenisHak,
+      JenisHak,
+      noHak,
+      idDesa,
+      namaDesa,
+      namaKecamatan,
+      namaPetugasSPS,
+      tanggalSPS,
+      idPetugasUkur,
+      statusAlihMedia,
+      statusBayarPNBP,
+      PIC,
+      dateUp,
+    } = req.body;
+
+    // Validasi keberadaan data
+    const existingBerkas = await Berkas.findOne({ idBerkas });
+    if (!existingBerkas) {
+      return res.status(404).json({ error: "Data berkas tidak ditemukan." });
+    }
+
+    // Validasi jumlah PIC
+    if (PIC && PIC.length > 2) {
+      return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
+    }
+
+    // Perbarui data berkas
+    existingBerkas.noBerkas = noBerkas || existingBerkas.noBerkas;
+    existingBerkas.tahunBerkas = tahunBerkas || existingBerkas.tahunBerkas;
+    existingBerkas.tanggalTerima = tanggalTerima || existingBerkas.tanggalTerima;
+    existingBerkas.idKegiatan = idKegiatan || existingBerkas.idKegiatan;
+    existingBerkas.namaSubsek = namaSubsek || existingBerkas.namaSubsek;
+    existingBerkas.namaKegiatan = namaKegiatan || existingBerkas.namaKegiatan;
+    existingBerkas.idPemohon = idPemohon || existingBerkas.idPemohon;
+    existingBerkas.namaPemohon = namaPemohon || existingBerkas.namaPemohon;
+    existingBerkas.idJenisHak = idJenisHak || existingBerkas.idJenisHak;
+    existingBerkas.JenisHak = JenisHak || existingBerkas.JenisHak;
+    existingBerkas.noHak = noHak || existingBerkas.noHak;
+    existingBerkas.idDesa = idDesa || existingBerkas.idDesa;
+    existingBerkas.namaDesa = namaDesa || existingBerkas.namaDesa;
+    existingBerkas.namaKecamatan = namaKecamatan || existingBerkas.namaKecamatan;
+    existingBerkas.namaPetugasSPS = namaPetugasSPS || existingBerkas.namaPetugasSPS;
+    existingBerkas.tanggalSPS = tanggalSPS || existingBerkas.tanggalSPS;
+    existingBerkas.idPetugasUkur = idPetugasUkur || existingBerkas.idPetugasUkur;
+    existingBerkas.statusAlihMedia =
+      typeof statusAlihMedia === "boolean" ? statusAlihMedia : existingBerkas.statusAlihMedia;
+    existingBerkas.statusBayarPNBP =
+      typeof statusBayarPNBP === "boolean" ? statusBayarPNBP : existingBerkas.statusBayarPNBP;
+    existingBerkas.PIC = PIC || existingBerkas.PIC;
+    existingBerkas.dateUp = dateUp || new Date().toISOString();
+
+    // Simpan data yang diperbarui
+    const updatedBerkas = await existingBerkas.save();
+
+    res.status(200).json({
+      message: "Berkas berhasil diperbarui.",
+      data: updatedBerkas,
+    });
+  } catch (error) {
+    console.error("Gagal memperbarui data berkas:", error);
+    res.status(500).json({ error: "Terjadi kesalahan server." });
+  }
+});
+
+
 router.get("/desa", async (req, res) => {
   try {
     const desaList = await Desa.find();
