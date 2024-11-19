@@ -286,7 +286,6 @@ router.post("/", async (req, res) => {
       data = await Berkas.aggregate(pipeline);
 
       // Debugging hasil akhir
-      console.log("Filtered Data:", data);
     }
 
     // Kirim data ke frontend
@@ -294,6 +293,80 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/filter", async (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  const { role, tanggalTerimaStart, tanggalTerimaEnd, kegiatan, jenisHak, desa, petugasUkur } = req.body;
+
+  try {
+    const user = await verifyToken(token);
+
+    // Validasi Role
+    if (!user.role.includes(role)) {
+      return res.status(403).json({ message: "Anda tidak memiliki akses role tersebut" });
+    }
+
+    let pipeline = [];
+
+    // Role Admin (akses semua data)
+    if (role === "Admin") {
+      pipeline.push({ $match: {} }); // Tidak ada pembatasan berbasis role
+    } else {
+      const allowedStatuses = roleStatusAccess[role];
+      if (!allowedStatuses) {
+        return res.status(403).json({ message: "Role tidak dikenali." });
+      }
+
+      pipeline.push(
+        {
+          $addFields: {
+            lastStatus: {
+              $arrayElemAt: ["$status", -1],
+            },
+          },
+        },
+        {
+          $match: {
+            "lastStatus.name": { $in: allowedStatuses },
+          },
+        }
+      );
+    }
+
+    // Tambahkan $addFields untuk konversi `tanggalTerima` ke `Date`
+    pipeline.push({
+      $addFields: {
+        tanggalTerimaDate: { $toDate: "$tanggalTerima" }, // Konversi ke tipe Date
+      },
+    });
+
+    // Filter berdasarkan parameter
+    const filters = {};
+
+    if (tanggalTerimaStart || tanggalTerimaEnd) {
+      filters.tanggalTerimaDate = {};
+      if (tanggalTerimaStart) filters.tanggalTerimaDate.$gte = new Date(tanggalTerimaStart);
+      if (tanggalTerimaEnd) filters.tanggalTerimaDate.$lte = new Date(tanggalTerimaEnd);
+    }
+
+    if (kegiatan) filters.namaKegiatan = kegiatan;
+    if (jenisHak) filters.JenisHak = jenisHak;
+    if (desa) filters.namaDesa = desa;
+    if (petugasUkur) filters.namaPetugasUkur = petugasUkur;
+
+    if (Object.keys(filters).length > 0) {
+      pipeline.push({ $match: filters });
+    }
+
+    const data = await Berkas.aggregate(pipeline);
+
+    res.status(200).json({ data });
+  } catch (error) {
+    console.error("Error fetching filtered data:", error);
+    res.status(500).json({ message: "Gagal memfilter data.", error: error.message });
   }
 });
 
