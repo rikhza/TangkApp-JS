@@ -132,14 +132,6 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  namaPetugasSPS: {
-    type: String,
-    required: true,
-  },
-  tanggalSPS: {
-    type: String,
-    required: true,
-  },
   idPetugasUkur: {
     type: String,
     default: null, 
@@ -147,6 +139,18 @@ const berkasSchema = mongoose.Schema({
   namaPetugasUkur: {
     type: String,
     default: null, 
+  },
+  idPetugasSPS: {
+    type: String,
+    required: true,
+  },
+  namaPetugasSPS: {
+    type: String,
+    required: true,
+  },
+  tanggalSPS: {
+    type: String,
+    required: true,
   },
   statusAlihMedia: {
     type: Boolean,

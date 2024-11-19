@@ -8,6 +8,7 @@ const Kegiatan = require("../model/kegiatan");
 const Pemohon = require("../model/pemohon");
 const JenisHak = require("../model/jenisHak");
 const PetugasUkur = require("../model/petugasUkur");
+const PetugasSPS = require("../model/petugasSPS");
 
 const dbFormatDate = "DD MMMM YYYY";
 const dbFormatDateTime = "YYYY-MM-DDTHH:mm:ss";
@@ -34,15 +35,15 @@ router.post("/insert", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
+      idPetugasUkur,
+      namaPetugasUkur,
+      idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
-      idPetugasUkur,
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
       PIC,
-      dateIn,
-      dateUp,
     } = req.body;
 
     // Validasi jumlah PIC
@@ -67,10 +68,11 @@ router.post("/insert", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
+      idPetugasUkur,
+      namaPetugasUkur,
+      idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
-      idPetugasUkur: idPetugasUkur || null,
-      namaPetugasUkur: namaPetugasUkur || null,
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
@@ -91,7 +93,7 @@ router.post("/insert", async (req, res) => {
       }
     ],
       dateIn: new Date().toISOString(),
-      dateUp: dateUp || null,
+      dateUp: null,
     });
 
     // Simpan ke database
@@ -124,10 +126,11 @@ router.put("/update/:idBerkas", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
-      namaPetugasSPS,
-      tanggalSPS,
       idPetugasUkur,
       namaPetugasUkur,
+      idPetugasSPS,
+      namaPetugasSPS,
+      tanggalSPS,
       statusAlihMedia,
       statusBayarPNBP,
       PIC,
@@ -160,6 +163,7 @@ router.put("/update/:idBerkas", async (req, res) => {
     existingBerkas.idDesa = idDesa || existingBerkas.idDesa;
     existingBerkas.namaDesa = namaDesa || existingBerkas.namaDesa;
     existingBerkas.namaKecamatan = namaKecamatan || existingBerkas.namaKecamatan;
+    existingBerkas.idPetugasSPS = namaPetugasSPS || existingBerkas.idPetugasSPS;
     existingBerkas.namaPetugasSPS = namaPetugasSPS || existingBerkas.namaPetugasSPS;
     existingBerkas.tanggalSPS = tanggalSPS || existingBerkas.tanggalSPS;
     existingBerkas.idPetugasUkur = idPetugasUkur || existingBerkas.idPetugasUkur;
@@ -224,6 +228,15 @@ router.get("/petugasUkur", async (req, res) => {
   try {
     const petugasUkurList = await PetugasUkur.find();
     res.status(200).json(petugasUkurList);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/petugasSPS", async (req, res) => {
+  try {
+    const PetugasSPSList = await PetugasSPS.find();
+    res.status(200).json(PetugasSPSList);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -299,7 +312,8 @@ router.post("/", async (req, res) => {
 router.post("/filter", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  const { role, tanggalTerimaStart, tanggalTerimaEnd, kegiatan, jenisHak, desa, petugasUkur } = req.body;
+  const { role, tanggalTerimaStart, tanggalTerimaEnd, kegiatan, jenisHak, desa, petugasUkur } =
+    req.body;
 
   try {
     const user = await verifyToken(token);
@@ -313,7 +327,7 @@ router.post("/filter", async (req, res) => {
 
     // Role Admin (akses semua data)
     if (role === "Admin") {
-      pipeline.push({ $match: {} }); // Tidak ada pembatasan berbasis role
+      pipeline.push({ $match: {} });
     } else {
       const allowedStatuses = roleStatusAccess[role];
       if (!allowedStatuses) {
@@ -336,10 +350,10 @@ router.post("/filter", async (req, res) => {
       );
     }
 
-    // Tambahkan $addFields untuk konversi `tanggalTerima` ke `Date`
+    // Tambahkan $addFields untuk konversi `tanggalTerima` ke tipe Date
     pipeline.push({
       $addFields: {
-        tanggalTerimaDate: { $toDate: "$tanggalTerima" }, // Konversi ke tipe Date
+        tanggalTerimaDate: { $toDate: "$tanggalTerima" },
       },
     });
 
@@ -352,16 +366,22 @@ router.post("/filter", async (req, res) => {
       if (tanggalTerimaEnd) filters.tanggalTerimaDate.$lte = new Date(tanggalTerimaEnd);
     }
 
-    if (kegiatan) filters.namaKegiatan = kegiatan;
-    if (jenisHak) filters.JenisHak = jenisHak;
-    if (desa) filters.namaDesa = desa;
-    if (petugasUkur) filters.namaPetugasUkur = petugasUkur;
+    if (kegiatan) filters.idKegiatan = kegiatan;
+    if (jenisHak) filters.idJenisHak = jenisHak;
+    if (desa) filters.idDesa = desa;
+    if (petugasUkur) filters.idPetugasUkur = petugasUkur;
 
     if (Object.keys(filters).length > 0) {
       pipeline.push({ $match: filters });
     }
 
+    // Debug pipeline
+    console.log("Pipeline Debug:", JSON.stringify(pipeline, null, 2));
+
     const data = await Berkas.aggregate(pipeline);
+
+    // Debug hasil data
+    console.log("Data Ditemukan:", JSON.stringify(data, null, 2));
 
     res.status(200).json({ data });
   } catch (error) {
@@ -369,6 +389,8 @@ router.post("/filter", async (req, res) => {
     res.status(500).json({ message: "Gagal memfilter data.", error: error.message });
   }
 });
+
+
 
 
 
