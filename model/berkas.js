@@ -132,6 +132,7 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+<<<<<<< HEAD
   idPetugasUkur: {
     type: String,
     default: null, 
@@ -144,6 +145,8 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+=======
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
   namaPetugasSPS: {
     type: String,
     required: true,
@@ -152,6 +155,13 @@ const berkasSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+<<<<<<< HEAD
+=======
+  idPetugasUkur: {
+    type: String,
+    default: null, // Tidak wajib diisi
+  },
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
   statusAlihMedia: {
     type: Boolean,
     required: true,
@@ -165,7 +175,11 @@ const berkasSchema = mongoose.Schema({
     required: true,
   },
   PIC: [picSchema], // Array PIC tidak wajib diisi
+<<<<<<< HEAD
   status: [statusSchema],
+=======
+  status: statusSchema,
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
   dateIn: {
     type: String,
   },

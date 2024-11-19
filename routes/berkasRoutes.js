@@ -8,7 +8,10 @@ const Kegiatan = require("../model/kegiatan");
 const Pemohon = require("../model/pemohon");
 const JenisHak = require("../model/jenisHak");
 const PetugasUkur = require("../model/petugasUkur");
+<<<<<<< HEAD
 const PetugasSPS = require("../model/petugasSPS");
+=======
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 
 const dbFormatDate = "DD MMMM YYYY";
 const dbFormatDateTime = "YYYY-MM-DDTHH:mm:ss";
@@ -35,15 +38,26 @@ router.post("/insert", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
+<<<<<<< HEAD
       idPetugasUkur,
       namaPetugasUkur,
       idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
+=======
+      namaPetugasSPS,
+      tanggalSPS,
+      idPetugasUkur,
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
       PIC,
+<<<<<<< HEAD
+=======
+      dateIn,
+      dateUp,
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
     } = req.body;
 
     // Validasi jumlah PIC
@@ -68,11 +82,17 @@ router.post("/insert", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
+<<<<<<< HEAD
       idPetugasUkur,
       namaPetugasUkur,
       idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
+=======
+      namaPetugasSPS,
+      tanggalSPS,
+      idPetugasUkur: idPetugasUkur || null,
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
@@ -93,7 +113,11 @@ router.post("/insert", async (req, res) => {
       }
     ],
       dateIn: new Date().toISOString(),
+<<<<<<< HEAD
       dateUp: null,
+=======
+      dateUp: dateUp || null,
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
     });
 
     // Simpan ke database
@@ -108,6 +132,7 @@ router.post("/insert", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 router.put("/update/:idBerkas", async (req, res) => {
   try {
     const { idBerkas } = req.params;
@@ -189,6 +214,8 @@ router.put("/update/:idBerkas", async (req, res) => {
 });
 
 
+=======
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 router.get("/desa", async (req, res) => {
   try {
     const desaList = await Desa.find();
@@ -233,6 +260,7 @@ router.get("/petugasUkur", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 router.get("/petugasSPS", async (req, res) => {
   try {
     const PetugasSPSList = await PetugasSPS.find();
@@ -258,6 +286,19 @@ router.post("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   const role = req.body.role; // Role dari body
+=======
+const roleStatusAccess = {
+  Admin: [], 
+  SPJ: ["Proses SPJ"], 
+  Kasi: ["Approval Kasi"], 
+};
+
+
+router.post("/", async (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  const role = req.body.role; // Role dari header
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 
   try {
     // Verifikasi token
@@ -281,22 +322,35 @@ router.post("/", async (req, res) => {
       }
 
       const pipeline = [
+<<<<<<< HEAD
         // Ambil status terakhir dari array status
         {
           $addFields: {
             lastStatus: {
               $arrayElemAt: ["$status", -1], // Ambil elemen terakhir dari array status
+=======
+        // Ambil status terakhir dari status.statusDetail
+        {
+          $addFields: {
+            lastStatus: {
+              $arrayElemAt: ["$status.statusDetail", -1], // Ambil elemen terakhir dari statusDetail
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
             },
           },
         },
         {
           $match: {
+<<<<<<< HEAD
             "lastStatus.name": { $in: allowedStatuses }, // Periksa apakah lastStatus.name sesuai role
+=======
+            "lastStatus.nama": { $in: allowedStatuses }, // Periksa apakah status terakhir sesuai role
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
           },
         },
       ];
 
       data = await Berkas.aggregate(pipeline);
+<<<<<<< HEAD
 
       // Debugging hasil akhir
     }
@@ -305,10 +359,16 @@ router.post("/", async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching data:", error);
+=======
+    }
+      res.status(200).json(data);
+  } catch (error) {
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
     res.status(500).json({ error: error.message });
   }
 });
 
+<<<<<<< HEAD
 router.post("/filter", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -394,4 +454,6 @@ router.post("/filter", async (req, res) => {
 
 
 
+=======
+>>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 module.exports = router;
