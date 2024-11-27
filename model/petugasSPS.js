@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
 
 const petugasSPSSchema = new mongoose.Schema({
-  namaPetugas: {
+  nama: {
+    type: String,
+    required: true,
+  },
+  NIK: {
     type: String,
     required: true,
   },

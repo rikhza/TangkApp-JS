@@ -8,10 +8,11 @@ const Kegiatan = require("../model/kegiatan");
 const Pemohon = require("../model/pemohon");
 const JenisHak = require("../model/jenisHak");
 const PetugasUkur = require("../model/petugasUkur");
-<<<<<<< HEAD
 const PetugasSPS = require("../model/petugasSPS");
-=======
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
+const Status = require('../model/status');
+const { getBerkasByRole } = require("../function/queryByRole");
+const status = require("../model/status");
+const Roles = require("../model/roles");
 
 const dbFormatDate = "DD MMMM YYYY";
 const dbFormatDateTime = "YYYY-MM-DDTHH:mm:ss";
@@ -22,7 +23,7 @@ const SECRET_KEY = "TangkApp";
 // Endpoint untuk menyimpan data berkas
 router.post("/insert", async (req, res) => {
   try {
-    const {
+    let {
       idBerkas,
       noBerkas,
       tahunBerkas,
@@ -38,33 +39,43 @@ router.post("/insert", async (req, res) => {
       idDesa,
       namaDesa,
       namaKecamatan,
-<<<<<<< HEAD
       idPetugasUkur,
       namaPetugasUkur,
       idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
-=======
-      namaPetugasSPS,
-      tanggalSPS,
-      idPetugasUkur,
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
       statusAlihMedia,
       statusBayarPNBP,
-      idUser,
-      PIC,
-<<<<<<< HEAD
-=======
-      dateIn,
+      namaPIC,
+      kontakPIC,
       dateUp,
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
+      jumlahBidang,
+      luas,
+      pemohonBaru,
+      idUser
     } = req.body;
 
-    // Validasi jumlah PIC
-    if (PIC && PIC.length > 2) {
-      return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
+    const existingBerkas = await Berkas.findOne({ idBerkas });
+    if (existingBerkas) {
+      return res.status(400).json({ error: "Nomor Berkas sudah didaftarkan sebelumnya." });
     }
 
+    // Validasi jumlah PIC
+    // if (PIC && PIC.length > 2) {
+    //   return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
+    // }
+
+    if (pemohonBaru) {
+      const newPemohon = new Pemohon({
+        namaPemohon,
+        dateIn: new Date().toISOString(),
+      });
+    
+      const savedPemohon = await newPemohon.save();
+      idPemohon = savedPemohon._id.toString(); // Update idPemohon
+    }
+
+    const statusAwal = await status.findOne({indexStatus: 0});
     // Buat instance baru
     const newBerkas = new Berkas({
       idBerkas,
@@ -78,28 +89,25 @@ router.post("/insert", async (req, res) => {
       namaPemohon,
       idJenisHak,
       JenisHak,
-      noHak,
+      noHak: (noHak == '-')? null : noHak,
       idDesa,
       namaDesa,
       namaKecamatan,
-<<<<<<< HEAD
-      idPetugasUkur,
-      namaPetugasUkur,
+      idPetugasUkur: idPetugasUkur || '',
+      namaPetugasUkur: namaPetugasUkur || '',
       idPetugasSPS,
       namaPetugasSPS,
       tanggalSPS,
-=======
-      namaPetugasSPS,
-      tanggalSPS,
-      idPetugasUkur: idPetugasUkur || null,
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
       statusAlihMedia,
       statusBayarPNBP,
       idUser,
-      PIC: PIC || [],
+      namaPIC,
+      kontakPIC,
+      jumlahBidang, 
+      luas,
       status: [
       {
-        name: "Proses SPJ",
+        name: statusAwal.nama,
         subStatus: "Berjalan",
         dateIn: new Date().toISOString(),
         userIn: idUser,
@@ -113,11 +121,7 @@ router.post("/insert", async (req, res) => {
       }
     ],
       dateIn: new Date().toISOString(),
-<<<<<<< HEAD
       dateUp: null,
-=======
-      dateUp: dateUp || null,
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
     });
 
     // Simpan ke database
@@ -132,7 +136,6 @@ router.post("/insert", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 router.put("/update/:idBerkas", async (req, res) => {
   try {
     const { idBerkas } = req.params;
@@ -158,8 +161,11 @@ router.put("/update/:idBerkas", async (req, res) => {
       tanggalSPS,
       statusAlihMedia,
       statusBayarPNBP,
-      PIC,
+      namaPIC,
+      kontakPIC,
       dateUp,
+      jumlahBidang,
+      luas
     } = req.body;
 
     // Validasi keberadaan data
@@ -169,9 +175,9 @@ router.put("/update/:idBerkas", async (req, res) => {
     }
 
     // Validasi jumlah PIC
-    if (PIC && PIC.length > 2) {
-      return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
-    }
+    // if (PIC && PIC.length > 2) {
+    //   return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
+    // }
 
     // Perbarui data berkas
     existingBerkas.noBerkas = noBerkas || existingBerkas.noBerkas;
@@ -188,16 +194,19 @@ router.put("/update/:idBerkas", async (req, res) => {
     existingBerkas.idDesa = idDesa || existingBerkas.idDesa;
     existingBerkas.namaDesa = namaDesa || existingBerkas.namaDesa;
     existingBerkas.namaKecamatan = namaKecamatan || existingBerkas.namaKecamatan;
-    existingBerkas.idPetugasSPS = namaPetugasSPS || existingBerkas.idPetugasSPS;
+    existingBerkas.idPetugasSPS = idPetugasSPS || existingBerkas.idPetugasSPS;
     existingBerkas.namaPetugasSPS = namaPetugasSPS || existingBerkas.namaPetugasSPS;
     existingBerkas.tanggalSPS = tanggalSPS || existingBerkas.tanggalSPS;
     existingBerkas.idPetugasUkur = idPetugasUkur || existingBerkas.idPetugasUkur;
     existingBerkas.namaPetugasUkur = namaPetugasUkur || existingBerkas.namaPetugasUkur;
+    existingBerkas.jumlahBidang = jumlahBidang || existingBerkas.jumlahBidang;
+    existingBerkas.luas = luas || existingBerkas.luas;
     existingBerkas.statusAlihMedia =
       typeof statusAlihMedia === "boolean" ? statusAlihMedia : existingBerkas.statusAlihMedia;
     existingBerkas.statusBayarPNBP =
       typeof statusBayarPNBP === "boolean" ? statusBayarPNBP : existingBerkas.statusBayarPNBP;
-    existingBerkas.PIC = PIC || existingBerkas.PIC;
+    existingBerkas.namaPIC = namaPIC || existingBerkas.namaPIC;
+    existingBerkas.kontakPIC = kontakPIC || existingBerkas.kontakPIC;
     existingBerkas.dateUp = dateUp || new Date().toISOString();
 
     // Simpan data yang diperbarui
@@ -214,8 +223,6 @@ router.put("/update/:idBerkas", async (req, res) => {
 });
 
 
-=======
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 router.get("/desa", async (req, res) => {
   try {
     const desaList = await Desa.find();
@@ -260,7 +267,6 @@ router.get("/petugasUkur", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 router.get("/petugasSPS", async (req, res) => {
   try {
     const PetugasSPSList = await PetugasSPS.find();
@@ -270,35 +276,10 @@ router.get("/petugasSPS", async (req, res) => {
   }
 });
 
-const roleStatusAccess = {
-  Admin: [],
-  PelaksanaEntri: ["Proses SPJ"],
-  PelaksanaSPJ: ["Proses SPJ"],
-  PelaksanaInventaris: ["Inventaris dan Distribusi", "Ukur Gambar", "Inventaris Berkas"],
-  PelaksanaKoordinator: ["Periksa Hasil PU", "QC Pemeriksa Koordinator"],
-  PelaksanaPemetaan: ["QC Bidang/Integrasi"],
-  PelaksanaPencetakan: ["Pencetakan/Validasi Sitata"],
-  Korsub: ["Approval SPJ Korsub", "Paraf Produk Berkas"],
-  Kasi: ["Approval SPJ Kasi", "TTD Produk Berkas", "Penyelesaian 307"],
-};
-
 router.post("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   const role = req.body.role; // Role dari body
-=======
-const roleStatusAccess = {
-  Admin: [], 
-  SPJ: ["Proses SPJ"], 
-  Kasi: ["Approval Kasi"], 
-};
-
-
-router.post("/", async (req, res) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  const role = req.body.role; // Role dari header
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 
   try {
     // Verifikasi token
@@ -309,66 +290,30 @@ router.post("/", async (req, res) => {
       return res.status(403).json({ message: "Anda tidak memiliki akses role tersebut" });
     }
 
-    let data;
-
-    if (role === "Admin") {
-      // Admin dapat melihat semua dokumen
-      data = await Berkas.find();
-    } else {
-      // Role lain hanya dapat melihat dokumen berdasarkan status terakhir
-      const allowedStatuses = roleStatusAccess[role];
-      if (!allowedStatuses) {
-        return res.status(403).json({ message: "Role tidak dikenali." });
-      }
-
-      const pipeline = [
-<<<<<<< HEAD
-        // Ambil status terakhir dari array status
-        {
-          $addFields: {
-            lastStatus: {
-              $arrayElemAt: ["$status", -1], // Ambil elemen terakhir dari array status
-=======
-        // Ambil status terakhir dari status.statusDetail
-        {
-          $addFields: {
-            lastStatus: {
-              $arrayElemAt: ["$status.statusDetail", -1], // Ambil elemen terakhir dari statusDetail
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
-            },
-          },
-        },
-        {
-          $match: {
-<<<<<<< HEAD
-            "lastStatus.name": { $in: allowedStatuses }, // Periksa apakah lastStatus.name sesuai role
-=======
-            "lastStatus.nama": { $in: allowedStatuses }, // Periksa apakah status terakhir sesuai role
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
-          },
-        },
-      ];
-
-      data = await Berkas.aggregate(pipeline);
-<<<<<<< HEAD
-
-      // Debugging hasil akhir
-    }
+    // Dapatkan data berkas sesuai role
+    const data = await getBerkasByRole(role);
 
     // Kirim data ke frontend
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching data:", error);
-=======
-    }
-      res.status(200).json(data);
-  } catch (error) {
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
     res.status(500).json({ error: error.message });
   }
 });
 
-<<<<<<< HEAD
+router.get('/detail/:_id', async (req, res) => {
+  const { _id } = req.params;
+  try {
+      const berkas = await Berkas.findById(_id);
+      if (!berkas) {
+          return res.status(404).json({ message: 'Berkas tidak ditemukan.' });
+      }
+      res.json(berkas);
+  } catch (error) {
+      res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data.', error });
+  }
+});
+
 router.post("/filter", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -389,8 +334,17 @@ router.post("/filter", async (req, res) => {
     if (role === "Admin") {
       pipeline.push({ $match: {} });
     } else {
-      const allowedStatuses = roleStatusAccess[role];
-      if (!allowedStatuses) {
+      const roleData = await Roles.findOne({ nama: role });
+      if (!roleData) {
+        throw new Error("Role tidak dikenali.");
+      }
+      const allowedStatuses = roleData.accessStatus;  // ambil accessStatus dari role
+      const allowedValues = allowedStatuses.map(status => status.nama); 
+      if (!allowedStatuses || allowedStatuses.length === 0) {
+        throw new Error("Role tidak memiliki akses status yang valid.");
+      }
+
+      if (!allowedValues) {
         return res.status(403).json({ message: "Role tidak dikenali." });
       }
 
@@ -398,15 +352,15 @@ router.post("/filter", async (req, res) => {
         {
           $addFields: {
             lastStatus: {
-              $arrayElemAt: ["$status", -1],
+              $arrayElemAt: ["$status", -1], // Ambil status terakhir dari array status
             },
           },
         },
         {
           $match: {
-            "lastStatus.name": { $in: allowedStatuses },
+            "lastStatus.name": { $in: allowedValues }, // Filter berdasarkan status yang sesuai dengan role
           },
-        }
+        },
       );
     }
 
@@ -434,15 +388,7 @@ router.post("/filter", async (req, res) => {
     if (Object.keys(filters).length > 0) {
       pipeline.push({ $match: filters });
     }
-
-    // Debug pipeline
-    console.log("Pipeline Debug:", JSON.stringify(pipeline, null, 2));
-
     const data = await Berkas.aggregate(pipeline);
-
-    // Debug hasil data
-    console.log("Data Ditemukan:", JSON.stringify(data, null, 2));
-
     res.status(200).json({ data });
   } catch (error) {
     console.error("Error fetching filtered data:", error);
@@ -450,10 +396,122 @@ router.post("/filter", async (req, res) => {
   }
 });
 
+// Contoh di Express.js
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Langsung berikan id ke findByIdAndDelete
+    const deletedBerkas = await Berkas.findByIdAndDelete(id);
+
+    if (!deletedBerkas) {
+      // Jika tidak ditemukan, kirim respons 404
+      return res.status(404).json({ message: "Berkas tidak ditemukan." });
+    }
+
+    res.status(200).json({ message: "Berkas berhasil dihapus." });
+  } catch (error) {
+    console.error("Error saat menghapus berkas:", error);
+    res.status(500).json({ message: "Terjadi kesalahan saat menghapus berkas." });
+  }
+});
 
 
+router.post('/updateStatus/:id/selesai', async (req, res) => {
+  const { id } = req.params;
+  const { userIn, NIK, namaUser, notes, role, idPetugasUkur, namaPetugasUkur, statusBayarPNBP } = req.body;
+
+  try {
+    const berkas = await Berkas.findById(id);
+    if (!berkas) {
+      return res.status(404).json({ message: "Berkas tidak ditemukan" });
+    }
+
+    // Ambil status terakhir
+    const currentStatus = berkas.status[berkas.status.length - 1];
+    // if (!currentStatus || currentStatus.subStatus !== "Berjalan") {
+    //   return res.status(400).json({ message: "Tidak ada status aktif yang berjalan!" });
+    // }
+
+    // Tambahkan substatus "Selesai"
+    currentStatus.statusDetail.push({
+        nama: 'Selesai',
+        dateIn: new Date(),
+        dateUp: "",
+        userIn, NIK, namaUser, notes
+    });
+    currentStatus.subStatus = "Selesai";
+
+    // Cari status berikutnya dari koleksi Status
+    const currentIndex = await Status.findOne({ nama: currentStatus.name });
+    if (!currentIndex) {
+      return res.status(400).json({ message: "Status tidak valid di koleksi Status!" });
+    }
+
+    const nextStatus = await Status.findOne({ indexStatus: currentIndex.indexStatus + 1 });
+
+    // Tambahkan status baru jika ada status berikutnya
+    if (nextStatus) {
+      berkas.status.push({
+        name: nextStatus.nama,
+        subStatus: "Berjalan",
+        dateIn: new Date(),
+        statusDetail: [
+          {
+            nama: "Berjalan",
+            dateIn: new Date(),
+          },
+        ],
+      });
+    }
+
+    if(role === "PelaksanaSPJ"){
+      berkas.idPetugasUkur = idPetugasUkur;
+      berkas.namaPetugasUkur = namaPetugasUkur;
+      berkas.statusBayarPNBP =
+      typeof statusBayarPNBP === "boolean" ? statusBayarPNBP : berkas.statusBayarPNBP;
+    }
+
+    await berkas.save();
+    res.status(200).json({ message: "Status berhasil diperbarui ke 'Selesai'!", berkas });
+  } catch (error) {
+    res.status(500).json({ message: "Terjadi kesalahan pada server", error });
+  }
+});
+
+router.post('/updateStatus/:id/terhenti', async (req, res) => {
+  const { id } = req.params;
+  const { deskripsiKendala } = req.body;
+
+  if (!deskripsiKendala) {
+    return res.status(400).json({ message: "Deskripsi kendala harus diisi!" });
+  }
+
+  try {
+    const berkas = await Berkas.findById(id);
+    if (!berkas) {
+      return res.status(404).json({ message: "Berkas tidak ditemukan" });
+    }
+
+    // Ambil status terakhir
+    const currentStatus = berkas.status[berkas.status.length - 1];
+    // if (!currentStatus || currentStatus.subStatus !== "Berjalan") {
+    //   return res.status(400).json({ message: "Tidak ada status aktif yang berjalan!" });
+    // }
+
+    // Tambahkan substatus "Terhenti" dengan kendala
+    currentStatus.statusDetail.push({
+      nama: "Terhenti",
+      dateIn: new Date(),
+      deskripsiKendala,
+    });
+    currentStatus.subStatus = "Terhenti";
+
+    await berkas.save();
+    res.status(200).json({ message: "Status berhasil diperbarui ke 'Terhenti'!", berkas });
+  } catch (error) {
+    res.status(500).json({ message: "Terjadi kesalahan pada server", error });
+  }
+});
 
 
-=======
->>>>>>> 60e1c70b980672ea79bf5966143895f77479c965
 module.exports = router;
