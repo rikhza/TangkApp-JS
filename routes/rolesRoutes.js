@@ -1,69 +1,68 @@
-const express = require("express");
+const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
-const Role = require("../model/roles");
 
-// Endpoint untuk mendapatkan semua roles
-router.get("/", async (req, res) => {
+// Import the Role model
+const Roles = require('../model/roles');
+
+// GET all roles
+router.get('/', async (req, res) => {
   try {
-    const roles = await Role.find(); // Ambil semua roles dari database
+    const roles = await Roles.find();
     res.status(200).json(roles);
   } catch (error) {
-    res.status(500).json({ error: "Gagal mendapatkan roles", details: error.message });
+    res.status(500).json({ message: 'Error fetching roles', error });
   }
 });
 
-// Endpoint untuk mendapatkan role berdasarkan ID
-router.get("/:id", async (req, res) => {
+// GET role by ID
+router.get('/:id', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.id); // Cari role berdasarkan ID
-    if (!role) return res.status(404).json({ error: "Role tidak ditemukan" });
-
+    const role = await Roles.findById(req.params.id);
+    if (!role) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
     res.status(200).json(role);
   } catch (error) {
-    res.status(500).json({ error: "Gagal mendapatkan role", details: error.message });
+    res.status(500).json({ message: 'Error fetching role', error });
   }
 });
 
-// Endpoint untuk membuat role baru
-router.post("/", async (req, res) => {
+// POST create new role
+router.post('/', async (req, res) => {
   try {
-    const { nama, accessStatus } = req.body; // Ambil data dari request body
-    const newRole = new Role({ nama, accessStatus }); // Buat dokumen baru
-    await newRole.save(); // Simpan ke database
-
-    res.status(201).json(newRole);
+    console.log(req.body)
+    const newRole = new Roles(req.body);
+    const savedRole = await newRole.save();
+    res.status(201).json(savedRole);
   } catch (error) {
-    res.status(500).json({ error: "Gagal membuat role", details: error.message });
+    res.status(500).json({ message: 'Error creating role', error });
   }
 });
 
-// Endpoint untuk memperbarui role berdasarkan ID
-router.put("/:id", async (req, res) => {
+// PUT update role by ID
+router.put('/:id', async (req, res) => {
   try {
-    const { nama, accessStatus } = req.body; // Ambil data dari request body
-    const updatedRole = await Role.findByIdAndUpdate(
-      req.params.id,
-      { nama, accessStatus },
-      { new: true, runValidators: true } // Kembalikan dokumen yang diperbarui
-    );
-
-    if (!updatedRole) return res.status(404).json({ error: "Role tidak ditemukan" });
-
+    const updatedRole = await Roles.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
     res.status(200).json(updatedRole);
   } catch (error) {
-    res.status(500).json({ error: "Gagal memperbarui role", details: error.message });
+    res.status(500).json({ message: 'Error updating role', error });
   }
 });
 
-// Endpoint untuk menghapus role berdasarkan ID
-router.delete("/:id", async (req, res) => {
+// DELETE role by ID
+router.delete('/:id', async (req, res) => {
   try {
-    const deletedRole = await Role.findByIdAndDelete(req.params.id); // Hapus role berdasarkan ID
-    if (!deletedRole) return res.status(404).json({ error: "Role tidak ditemukan" });
-
-    res.status(200).json({ message: "Role berhasil dihapus" });
+    const deletedRole = await Roles.findByIdAndDelete(req.params.id);
+    if (!deletedRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    res.status(200).json({ message: 'Role deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Gagal menghapus role", details: error.message });
+    res.status(500).json({ message: 'Error deleting role', error });
   }
 });
 

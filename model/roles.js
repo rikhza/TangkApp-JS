@@ -18,10 +18,6 @@ const accessStatusSchema = new mongoose.Schema({
 
 // Skema untuk roles
 const roleSchema = new mongoose.Schema({
-  _id: {
-    type: mongoose.Schema.Types.ObjectId, // ObjectId dari MongoDB
-    required: true,
-  },
   nama: {
     type: String, // Nama role
     required: true,
