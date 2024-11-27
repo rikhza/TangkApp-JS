@@ -136,11 +136,12 @@ router.post("/insert", async (req, res) => {
   }
 });
 
-router.put("/update/:idBerkas", async (req, res) => {
+router.put("/update/:_id", async (req, res) => {
   try {
-    const { idBerkas } = req.params;
+    const { _id } = req.params;
     const {
       noBerkas,
+      idBerkas,
       tahunBerkas,
       tanggalTerima,
       idKegiatan,
@@ -169,7 +170,7 @@ router.put("/update/:idBerkas", async (req, res) => {
     } = req.body;
 
     // Validasi keberadaan data
-    const existingBerkas = await Berkas.findOne({ idBerkas });
+    const existingBerkas = await Berkas.findOne({ _id });
     if (!existingBerkas) {
       return res.status(404).json({ error: "Data berkas tidak ditemukan." });
     }
