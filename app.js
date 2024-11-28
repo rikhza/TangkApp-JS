@@ -16,6 +16,7 @@ const petugasSPSRoutes = require("./routes/petugasSPSRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const rolesRoutes = require("./routes/rolesRoutes");
 const statusRoutes = require("./routes/statusRoutes");
+const laporanRoutes = require("./routes/laporanRoutes");
 // const VPSRoutes = require("./routes/VPS");
 // const lambdaRoutes = require("./routes/lambda");
 
@@ -113,3 +114,4 @@ app.use("/petugas-sps", petugasSPSRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/roles", rolesRoutes);
 app.use("/status", statusRoutes);
+app.use("/laporan", laporanRoutes);
