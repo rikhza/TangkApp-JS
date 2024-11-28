@@ -465,11 +465,10 @@ router.post('/updateStatus/:id/selesai', async (req, res) => {
       });
     }
 
-    if(role === "PelaksanaSPJ"){
+    if(role === "Petugas Administrasi - Surat Tugas"){
       berkas.idPetugasUkur = idPetugasUkur;
       berkas.namaPetugasUkur = namaPetugasUkur;
-      berkas.statusBayarPNBP =
-      typeof statusBayarPNBP === "boolean" ? statusBayarPNBP : berkas.statusBayarPNBP;
+      berkas.statusBayarPNBP = true;
     }
 
     await berkas.save();
