@@ -5,13 +5,13 @@ const PetugasSPS = require("../model/petugasSPS");
 // CREATE
 router.post("/", async (req, res) => {
   try {
-    const { namaPetugas } = req.body;
+    const { nama } = req.body;
 
-    if (!namaPetugas) {
+    if (!nama) {
       return res.status(400).json({ error: "Nama petugas harus diisi." });
     }
 
-    const newPetugas = new PetugasSPS({ namaPetugas });
+    const newPetugas = new PetugasSPS({ nama });
     const savedPetugas = await newPetugas.save();
     res.status(201).json(savedPetugas);
   } catch (error) {
@@ -52,15 +52,15 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { namaPetugas } = req.body;
+    const { nama } = req.body;
 
-    if (!namaPetugas) {
+    if (!nama) {
       return res.status(400).json({ error: "Nama petugas harus diisi." });
     }
 
     const updatedPetugas = await PetugasSPS.findByIdAndUpdate(
       id,
-      { namaPetugas },
+      { nama },
       { new: true }
     );
 
