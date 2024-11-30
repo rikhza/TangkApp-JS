@@ -52,18 +52,14 @@ router.post("/insert", async (req, res) => {
       jumlahBidang,
       luas,
       pemohonBaru,
-      idUser
+      idUser,
+      kategoriBerkas // Added kategoriBerkas
     } = req.body;
-
+    
     const existingBerkas = await Berkas.findOne({ idBerkas });
     if (existingBerkas) {
       return res.status(400).json({ error: "Nomor Berkas sudah didaftarkan sebelumnya." });
     }
-
-    // Validasi jumlah PIC
-    // if (PIC && PIC.length > 2) {
-    //   return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
-    // }
 
     if (pemohonBaru) {
       const newPemohon = new Pemohon({
@@ -76,7 +72,7 @@ router.post("/insert", async (req, res) => {
     }
 
     const statusAwal = await status.findOne({indexStatus: 0});
-    // Buat instance baru
+
     const newBerkas = new Berkas({
       idBerkas,
       noBerkas,
@@ -105,21 +101,22 @@ router.post("/insert", async (req, res) => {
       kontakPIC,
       jumlahBidang, 
       luas,
+      kategoriBerkas, // Added kategoriBerkas
       status: [
-      {
-        name: statusAwal.nama,
-        subStatus: "Berjalan",
-        dateIn: new Date().toISOString(),
-        userIn: idUser,
-        statusDetail: [
-          {
-            nama: "Berjalan",
-            dateIn: new Date().toISOString(),
-            userIn: idUser
-          }
-        ],
-      }
-    ],
+        {
+          name: statusAwal.nama,
+          subStatus: "Berjalan",
+          dateIn: new Date().toISOString(),
+          userIn: idUser,
+          statusDetail: [
+            {
+              nama: "Berjalan",
+              dateIn: new Date().toISOString(),
+              userIn: idUser
+            }
+          ],
+        }
+      ],
       dateIn: new Date().toISOString(),
       dateUp: null,
     });
@@ -166,21 +163,15 @@ router.put("/update/:_id", async (req, res) => {
       kontakPIC,
       dateUp,
       jumlahBidang,
-      luas
+      luas,
+      kategoriBerkas // Added kategoriBerkas
     } = req.body;
 
-    // Validasi keberadaan data
     const existingBerkas = await Berkas.findOne({ _id });
     if (!existingBerkas) {
       return res.status(404).json({ error: "Data berkas tidak ditemukan." });
     }
 
-    // Validasi jumlah PIC
-    // if (PIC && PIC.length > 2) {
-    //   return res.status(400).json({ error: "Maksimal 2 PIC diperbolehkan." });
-    // }
-
-    // Perbarui data berkas
     existingBerkas.noBerkas = noBerkas || existingBerkas.noBerkas;
     existingBerkas.tahunBerkas = tahunBerkas || existingBerkas.tahunBerkas;
     existingBerkas.tanggalTerima = tanggalTerima || existingBerkas.tanggalTerima;
@@ -209,8 +200,8 @@ router.put("/update/:_id", async (req, res) => {
     existingBerkas.namaPIC = namaPIC || existingBerkas.namaPIC;
     existingBerkas.kontakPIC = kontakPIC || existingBerkas.kontakPIC;
     existingBerkas.dateUp = dateUp || new Date().toISOString();
+    existingBerkas.kategoriBerkas = kategoriBerkas || existingBerkas.kategoriBerkas; // Update kategoriBerkas
 
-    // Simpan data yang diperbarui
     const updatedBerkas = await existingBerkas.save();
 
     res.status(200).json({
@@ -222,7 +213,6 @@ router.put("/update/:_id", async (req, res) => {
     res.status(500).json({ error: "Terjadi kesalahan server." });
   }
 });
-
 
 router.get("/desa", async (req, res) => {
   try {
@@ -281,6 +271,7 @@ router.post("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   const role = req.body.role; // Role dari body
+  const kategoriBerkas = req.body.kategoriBerkas; // Kategori berkas dari body
 
   try {
     // Verifikasi token
@@ -291,16 +282,16 @@ router.post("/", async (req, res) => {
       return res.status(403).json({ message: "Anda tidak memiliki akses role tersebut" });
     }
 
-    // Dapatkan data berkas sesuai role
-    const data = await getBerkasByRole(role);
+    // Memanggil fungsi untuk mendapatkan berkas berdasarkan role dan kategori
+    const data = await getBerkasByRole(role, kategoriBerkas);
 
-    // Kirim data ke frontend
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/detail/:_id', async (req, res) => {
   const { _id } = req.params;
@@ -317,15 +308,31 @@ router.get('/detail/:_id', async (req, res) => {
 
 router.post("/filter", async (req, res) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  const { role, tanggalTerimaStart, tanggalTerimaEnd, kegiatan, jenisHak, desa, petugasUkur } =
-    req.body;
+  const token = authHeader && authHeader.split(" ")[1]; // Extract token
+  const { 
+    role, 
+    tanggalTerimaStart, 
+    tanggalTerimaEnd, 
+    kegiatan, 
+    jenisHak, 
+    desa, 
+    petugasUkur, 
+    kategoriBerkas  // Added kategoriBerkas
+  } = req.body;
 
   try {
+    // Verifikasi token
+    if (!token) {
+      return res.status(401).json({ message: "Token tidak ditemukan" });
+    }
+
     const user = await verifyToken(token);
+    if (!user) {
+      return res.status(401).json({ message: "Token tidak valid" });
+    }
 
     // Validasi Role
-    if (!user.role.includes(role)) {
+    if (role && !user.role.includes(role)) {
       return res.status(403).json({ message: "Anda tidak memiliki akses role tersebut" });
     }
 
@@ -337,24 +344,20 @@ router.post("/filter", async (req, res) => {
     } else {
       const roleData = await Roles.findOne({ nama: role });
       if (!roleData) {
-        throw new Error("Role tidak dikenali.");
+        return res.status(400).json({ message: "Role tidak dikenali." });
       }
-      const allowedStatuses = roleData.accessStatus;  // ambil accessStatus dari role
-      const allowedValues = allowedStatuses.map(status => status.nama); 
+
+      const allowedStatuses = roleData.accessStatus;
       if (!allowedStatuses || allowedStatuses.length === 0) {
-        throw new Error("Role tidak memiliki akses status yang valid.");
+        return res.status(403).json({ message: "Role tidak memiliki akses status yang valid." });
       }
 
-      if (!allowedValues) {
-        return res.status(403).json({ message: "Role tidak dikenali." });
-      }
-
+      const allowedValues = allowedStatuses.map(status => status.nama);
+      
       pipeline.push(
         {
           $addFields: {
-            lastStatus: {
-              $arrayElemAt: ["$status", -1], // Ambil status terakhir dari array status
-            },
+            lastStatus: { $arrayElemAt: ["$status", -1] }, // Ambil status terakhir
           },
         },
         {
@@ -385,10 +388,12 @@ router.post("/filter", async (req, res) => {
     if (jenisHak) filters.idJenisHak = jenisHak;
     if (desa) filters.idDesa = desa;
     if (petugasUkur) filters.idPetugasUkur = petugasUkur;
+    if (kategoriBerkas) filters.kategoriBerkas = kategoriBerkas; // Added kategoriBerkas filter
 
     if (Object.keys(filters).length > 0) {
       pipeline.push({ $match: filters });
     }
+
     const data = await Berkas.aggregate(pipeline);
     res.status(200).json({ data });
   } catch (error) {
@@ -396,6 +401,7 @@ router.post("/filter", async (req, res) => {
     res.status(500).json({ message: "Gagal memfilter data.", error: error.message });
   }
 });
+
 
 // Contoh di Express.js
 router.delete('/:id', async (req, res) => {
@@ -415,7 +421,6 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan saat menghapus berkas." });
   }
 });
-
 
 router.post('/updateStatus/:id/selesai', async (req, res) => {
   const { id } = req.params;

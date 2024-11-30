@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const Status = require("../model/status"); // Pastikan path ke model "status" sesuai
+const Status = require("../model/status"); // Make sure the path is correct
 
 // CREATE: Tambah data baru
 router.post("/", async (req, res) => {
   try {
-    const { indexStatus, nama } = req.body;
-    const newStatus = new Status({ indexStatus, nama });
+    const { indexStatus, nama, kategoriBerkas } = req.body;
+    const newStatus = new Status({ indexStatus, nama, kategoriBerkas });
     await newStatus.save();
     res.status(201).json(newStatus);
   } catch (error) {
@@ -40,7 +40,12 @@ router.get("/:id", async (req, res) => {
 // UPDATE: Perbarui data berdasarkan ID
 router.put("/:id", async (req, res) => {
   try {
-    const updatedStatus = await Status.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { indexStatus, nama, kategoriBerkas } = req.body;
+    const updatedStatus = await Status.findByIdAndUpdate(
+      req.params.id,
+      { indexStatus, nama, kategoriBerkas },
+      { new: true }
+    );
     if (!updatedStatus) {
       return res.status(404).json({ message: "Status not found" });
     }

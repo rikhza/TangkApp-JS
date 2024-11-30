@@ -175,13 +175,16 @@ const berkasSchema = mongoose.Schema({
   kontakPIC:{
     type: String,
   },
+  kategoriBerkas:{
+    type: String,
+  },
   status: [statusSchema],
   dateIn: {
     type: String,
   },
   dateUp: {
     type: String,
-    default: null, // Tidak wajib diisi
+    default: null,
   },
 });
 

@@ -8,7 +8,10 @@ const statusSchema = mongoose.Schema({
   nama: {
     type: String,
     
-  }
+  },
+  kategoriBerkas:{
+    type: String,
+  },
 });
 
 const status = mongoose.model("status", statusSchema);

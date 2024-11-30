@@ -26,6 +26,9 @@ const roleSchema = new mongoose.Schema({
     type: [accessStatusSchema], // Array objek accessStatus
     default: [], // Defaultnya adalah array kosong
   },
+  kategoriBerkas:{
+    type: String,
+  },
 });
 
 const Roles = mongoose.model("roles", roleSchema);

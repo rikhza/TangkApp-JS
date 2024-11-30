@@ -31,7 +31,6 @@ router.get('/:id', async (req, res) => {
 // POST create new role
 router.post('/', async (req, res) => {
   try {
-    console.log(req.body)
     const newRole = new Roles(req.body);
     const savedRole = await newRole.save();
     res.status(201).json(savedRole);

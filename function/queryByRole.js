@@ -1,8 +1,8 @@
 const Berkas = require("../model/berkas"); // Sesuaikan path ke model Berkas
 const Role = require("../model/roles"); // Model untuk mengambil data role
 
-// Fungsi untuk mendapatkan berkas berdasarkan role
-const getBerkasByRole = async (role) => {
+// Fungsi untuk mendapatkan berkas berdasarkan role dan kategori
+const getBerkasByRole = async (role, kategoriBerkas) => {
   // Mendapatkan akses status untuk role
   const roleData = await Role.findOne({ nama: role });
   if (!roleData) {
@@ -27,6 +27,7 @@ const getBerkasByRole = async (role) => {
     {
       $match: {
         "lastStatus.name": { $in: allowedValues }, // Filter berdasarkan status yang sesuai dengan role
+        "kategoriBerkas": kategoriBerkas, // Filter berdasarkan kategoriBerkas
       },
     },
   ];
