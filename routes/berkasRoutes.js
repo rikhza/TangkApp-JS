@@ -293,14 +293,19 @@ router.post("/", async (req, res) => {
 });
 
 
-router.get('/detail/:_id', async (req, res) => {
+router.post('/detail/:_id', async (req, res) => {
   const { _id } = req.params;
+  const role = req.body.role;
   try {
       const berkas = await Berkas.findById(_id);
+      const getRole = await Roles.findOne({nama: role});
       if (!berkas) {
           return res.status(404).json({ message: 'Berkas tidak ditemukan.' });
       }
-      res.json(berkas);
+      res.json({
+        berkas,
+        role: getRole
+      });
   } catch (error) {
       res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data.', error });
   }

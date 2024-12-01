@@ -5,6 +5,14 @@ const PetugasSPS = require("../model/petugasSPS");
 // CREATE
 router.post("/", async (req, res) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ error: "Token tidak ditemukan." });
+    }
+
+
     const { nama } = req.body;
 
     if (!nama) {
@@ -23,6 +31,13 @@ router.post("/", async (req, res) => {
 // READ ALL
 router.get("/", async (req, res) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ error: "Token tidak ditemukan." });
+    }
+
     const petugasList = await PetugasSPS.find();
     res.status(200).json(petugasList);
   } catch (error) {
@@ -34,6 +49,13 @@ router.get("/", async (req, res) => {
 // READ BY ID
 router.get("/:id", async (req, res) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ error: "Token tidak ditemukan." });
+    }
+
     const { id } = req.params;
     const petugas = await PetugasSPS.findById(id);
 
@@ -51,6 +73,13 @@ router.get("/:id", async (req, res) => {
 // UPDATE
 router.put("/:id", async (req, res) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ error: "Token tidak ditemukan." });
+    }
+
     const { id } = req.params;
     const { nama } = req.body;
 
@@ -78,6 +107,13 @@ router.put("/:id", async (req, res) => {
 // DELETE
 router.delete("/:id", async (req, res) => {
   try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ error: "Token tidak ditemukan." });
+    }
+
     const { id } = req.params;
 
     const deletedPetugas = await PetugasSPS.findByIdAndDelete(id);
