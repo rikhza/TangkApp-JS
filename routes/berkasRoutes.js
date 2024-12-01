@@ -56,7 +56,7 @@ router.post("/insert", async (req, res) => {
       kategoriBerkas // Added kategoriBerkas
     } = req.body;
     
-    const existingBerkas = await Berkas.findOne({ idBerkas });
+    const existingBerkas = await Berkas.findOne({ idBerkas, kategoriBerkas });
     if (existingBerkas) {
       return res.status(400).json({ error: "Nomor Berkas sudah didaftarkan sebelumnya." });
     }
@@ -71,7 +71,7 @@ router.post("/insert", async (req, res) => {
       idPemohon = savedPemohon._id.toString(); // Update idPemohon
     }
 
-    const statusAwal = await status.findOne({indexStatus: 0});
+    const statusAwal = await status.findOne({indexStatus: 0, kategoriBerkas});
 
     const newBerkas = new Berkas({
       idBerkas,
@@ -424,7 +424,7 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/updateStatus/:id/selesai', async (req, res) => {
   const { id } = req.params;
-  const { userIn, NIK, namaUser, notes, role, idPetugasUkur, namaPetugasUkur, statusBayarPNBP } = req.body;
+  const { userIn, NIK, namaUser, notes, role, idPetugasUkur, namaPetugasUkur, statusBayarPNBP, kategoriBerkas } = req.body;
 
   try {
     const berkas = await Berkas.findById(id);
@@ -448,12 +448,12 @@ router.post('/updateStatus/:id/selesai', async (req, res) => {
     currentStatus.subStatus = "Selesai";
 
     // Cari status berikutnya dari koleksi Status
-    const currentIndex = await Status.findOne({ nama: currentStatus.name });
+    const currentIndex = await Status.findOne({ nama: currentStatus.name, kategoriBerkas});
     if (!currentIndex) {
       return res.status(400).json({ message: "Status tidak valid di koleksi Status!" });
     }
 
-    const nextStatus = await Status.findOne({ indexStatus: currentIndex.indexStatus + 1 });
+    const nextStatus = await Status.findOne({ indexStatus: currentIndex.indexStatus + 1, kategoriBerkas });
 
     // Tambahkan status baru jika ada status berikutnya
     if (nextStatus) {
