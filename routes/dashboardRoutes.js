@@ -64,8 +64,9 @@ router.post("/", async (req, res) => {
 				},
 			},
 		]);
-
-		const berkasForRole = await getBerkasByRole(role);
+		const kategoriBerkas = roleData.kategoriBerkas;
+		
+		const berkasForRole = await getBerkasByRole(role, kategoriBerkas);
 		const twoDaysAgo = momentTimeZone(today).subtract(2, "days");
 
 		const isBerjalanMoreThan2Days = (status) => {
